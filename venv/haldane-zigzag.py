@@ -8,37 +8,70 @@ from mpl_toolkits.mplot3d import Axes3D
 class Haldane:
     def __init__(self):
         self.t = 1
-        self.lamb = 0.1
-        self.V = 0
+        self.lamb = 0.4
+        self.V = 0.2
+        self.n = 7  # dim of matrix
 
-        self.a1 = 0.5 * np.array([-3 ** 0.5, 3])  # translation vector1 in position domain
-        self.a2 = 0.5 * np.array([3 ** 0.5, 3])  # translation vector2 in position domain
 
     """hamiltonian for a given k"""
 
-    def define_hamiltonian(self, k1, k2):
-        ab = self.t * (1 + np.exp(-1j * k1) + np.exp(-1j * k2))
-        ba = np.conj(ab)
-        aa = self.V + 1j * self.lamb * (-np.exp(1j * (k1 - k2)) + np.exp(1j * k1) - np.exp(1j * k2)
-                                        + np.exp(-1j * (k1 - k2)) - np.exp(-1j * k1) + np.exp(-1j * k2))
-        # bb = -self.V + self.lamb * (np.exp(1j * (k1 - k2)) + np.exp(1j * k1) - np.exp(1j * k2)
-        #                             - np.exp(1j * (k1 - k2)) + np.exp(-1j * k1) - np.exp(-1j * k2))
-        bb = -aa
+    def hamiltonian(self, k):
+        hamiltonian = np.zeros((self.n, self.n), dtype=complex)
+        anan_odd = -self.V + 1j * self.lamb * (-np.exp(1j * k) + np.exp(-1j * k))
+        anan_even = self.V + 1j * self.lamb * (-np.exp(-1j * k) + np.exp(1j * k))
 
-        hamiltonian = np.array([[aa, ab],
-                                [ba, bb]])
-        return hamiltonian
+        a1a2 = self.t * (1 + np.exp(-1j * k))
+        a1a3 = 1j * self.lamb * (1 - np.exp(-1j * k))
 
-    @staticmethod
-    def finite_hamiltonian(n, t, dt):
-        hamiltonian = np.zeros((n, n))
-        for i in range(n - 1):
-            if i % 2 == 0:
-                hamiltonian[i][i + 1] = t + dt
-                hamiltonian[i + 1][i] = t + dt
-            else:
-                hamiltonian[i][i + 1] = t - dt
-                hamiltonian[i + 1][i] = t - dt
+        a2a3 = self.t
+        a2a4 = 1j * self.lamb * (1 - np.exp(1j * k))
+
+        a3a4 = self.t * (1 + np.exp(1j * k))
+        a3a5 = 1j * self.lamb * (-1 + np.exp(1j * k))
+
+        a4a5 = self.t
+        a4a6 = 1j * self.lamb * (-1 + np.exp(-1j * k))
+        for i in range(self.n):
+
+            if i % 4 == 0:
+                if i > 3:
+                    hamiltonian[i][i - 2] = np.conj(hamiltonian[i - 2][i])
+                    hamiltonian[i][i - 1] = np.conj(hamiltonian[i - 1][i])
+                hamiltonian[i][i] = anan_odd
+                if i + 1 < self.n:
+                    hamiltonian[i][i + 1] = a1a2
+                if i + 2 < self.n:
+                    hamiltonian[i][i + 2] = a1a3
+
+            elif i % 4 == 1:
+                if i > 4:
+                    hamiltonian[i][i - 2] = np.conj(hamiltonian[i - 2][i])
+                hamiltonian[i][i - 1] = np.conj(hamiltonian[i - 1][i])
+                hamiltonian[i][i] = anan_even
+                if i + 1 < self.n:
+                    hamiltonian[i][i + 1] = a2a3
+                if i + 2 < self.n:
+                    hamiltonian[i][i + 2] = a2a4
+
+            elif i % 4 == 2:
+                hamiltonian[i][i - 2] = np.conj(hamiltonian[i - 2][i])
+                hamiltonian[i][i - 1] = np.conj(hamiltonian[i - 1][i])
+                hamiltonian[i][i] = anan_odd
+                if i + 1 < self.n:
+                    hamiltonian[i][i + 1] = a3a4
+                if i + 2 < self.n:
+                    hamiltonian[i][i + 2] = a3a5
+
+            elif i % 4 == 3:
+                hamiltonian[i][i - 2] = np.conj(hamiltonian[i - 2][i])
+                hamiltonian[i][i - 1] = np.conj(hamiltonian[i - 1][i])
+                hamiltonian[i][i] = anan_even
+                if i + 1 < self.n:
+                    hamiltonian[i][i + 1] = a4a5
+                if i + 2 < self.n:
+                    hamiltonian[i][i + 2] = a4a6
+
+
         print(hamiltonian)
         return hamiltonian
 
@@ -59,4 +92,4 @@ class Haldane:
 
 if __name__ == '__main__':
     test = Haldane()
-    test.finite_hamiltonian(5, 1, 0.2)
+    test.hamiltonian(np.pi / 2)
