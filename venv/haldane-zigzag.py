@@ -2,15 +2,17 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import cmath
-from mpl_toolkits.mplot3d import Axes3D
+
+import matplotlib as mpl
+mpl.rcParams['figure.dpi'] = 200
 
 
 class Haldane:
     def __init__(self):
         self.t = 1
-        self.lamb = 0.4
-        self.V = 0.2
-        self.n = 7  # dim of matrix
+        self.lamb = 0.5
+        self.V = 0
+        self.n = 8  # dim of matrix
 
 
     """hamiltonian for a given k"""
@@ -71,25 +73,44 @@ class Haldane:
                 if i + 2 < self.n:
                     hamiltonian[i][i + 2] = a4a6
 
-
-        print(hamiltonian)
         return hamiltonian
 
-    def get_eigenvalues_for_plot3d(self):
-        eigenvalues_array_0, eigenvalues_array_1, kx_array, ky_array = list(), list(), list(), list()
-        k_step = 0.05
-        for kx in np.arange(-np.pi, np.pi, k_step):  # defining grid loop
-            for ky in np.arange(-np.pi, np.pi, k_step):
-                k1 = np.dot(np.array([kx, ky]), self.a1)
-                k2 = np.dot(np.array([kx, ky]), self.a2)
-                eigenvalues_array_0.append(np.linalg.eigh(self.define_hamiltonian(k1, k2))[0][0])
-                eigenvalues_array_1.append(np.linalg.eigh(self.define_hamiltonian(k1, k2))[0][1])
-                kx_array.append(kx)
-                ky_array.append(ky)
+    def get_eigenvalues_for_plot(self):
 
-        return kx_array, ky_array, eigenvalues_array_0, eigenvalues_array_1
+        k_array = list()
+        k = -np.pi
+        k_step = 0.05
+        i = 0
+        whole_eig_energy = np.zeros(((int(2 * np.pi / k_step)) + 1, self.n), dtype=complex)
+        while k < np.pi:
+            whole_eig_energy[i] = (list(np.linalg.eigh(self.hamiltonian(k))[0]))
+
+            k_array.append(k)
+            k = k + k_step
+            i += 1
+
+        return k_array, whole_eig_energy
+
+    def plot_data(self, xaxis, data_sets):
+
+        label_font_size = 20
+
+
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+
+        for i in range(self.n):
+            ax1.scatter(xaxis, data_sets[:, i], color='red')
+
+        plt.title("Energy bands", fontsize=label_font_size)
+        plt.xlabel("k", fontsize=label_font_size)
+        plt.ylabel("E", fontsize=label_font_size)
+
+        plt.show()
 
 
 if __name__ == '__main__':
     test = Haldane()
-    test.hamiltonian(np.pi / 2)
+    tmp = test.get_eigenvalues_for_plot()
+    test.plot_data(tmp[0], tmp[1])
