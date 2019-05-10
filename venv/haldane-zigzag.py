@@ -2,7 +2,6 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import cmath
-
 import matplotlib as mpl
 mpl.rcParams['figure.dpi'] = 200
 
@@ -12,7 +11,7 @@ class Haldane:
         self.t = 1
         self.lamb = 0.1
         self.V = 0
-        self.n = 40  # dim of matrix
+        self.n = 6  # dim of matrix
 
 
     """hamiltonian for a given k"""
@@ -33,9 +32,9 @@ class Haldane:
         a4a6 = 1j * self.lamb * (-1 + np.exp(-1j * k))
         for i in range(self.n):
             if i % 2 == 0:
-                hamiltonian[i][i] = -self.V + 1j * self.lamb * (-np.exp(1j * k) + np.exp(-1j * k))
+                hamiltonian[i][i] = -self.V + 2 * self.lamb * np.sin(k)
             if i % 2 == 1:
-                hamiltonian[i][i] = self.V + 1j * self.lamb * (-np.exp(-1j * k) + np.exp(1j * k))
+                hamiltonian[i][i] = self.V - 2 * self.lamb * np.sin(k)
 
             if i % 4 == 0:
                 if i > 3:
@@ -50,7 +49,7 @@ class Haldane:
             if i % 4 == 1:
                 if i > 4:
                     hamiltonian[i][i - 2] = np.conj(hamiltonian[i - 2][i])
-                hamiltonian[i][i - 1] = np.conj(hamiltonian[i - 1][i])
+                    hamiltonian[i][i - 1] = np.conj(hamiltonian[i - 1][i])
 
                 if i + 1 < self.n:
                     hamiltonian[i][i + 1] = a2a3
